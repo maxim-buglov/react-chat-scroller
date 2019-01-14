@@ -1,29 +1,30 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import './styles.css';
 
 class Message extends Component {
   render() {
-    const { text, date } = this.props.data;
-
+    const classListMessageContainer = classNames('message-container', {
+      'message-container-my': this.props.isMyMessage,
+    });
     return (
-      <div className="message-container">
+      <div className={classListMessageContainer}>
         <div className="message-text">
-          {text}
+          {this.props.text}
         </div>
         <div className="message-date">
-          {date}
+          {this.props.date}
         </div>
       </div>
     );
   }
 }
-  
+
 Message.propTypes = {
-  data: PropTypes.shape({
-    text: PropTypes.string.isRequired,
-    date: PropTypes.number.isRequired,
-  }).isRequired,
+  isMyMessage: PropTypes.bool.isRequired,
+  text: PropTypes.string.isRequired,
+  date: PropTypes.number.isRequired,
 };
 
 export default Message;

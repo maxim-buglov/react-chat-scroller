@@ -9,7 +9,9 @@ class App extends Component {
   render() {
     return (
       <div className="app-container">
-        <Chat 
+        <Chat
+          getMessagesTop={conversation.getMessagesTop}
+          getMessagesBottom={conversation.getMessagesBottom}
           getMessagesUnread={conversation.getMessagesUnread}
         />
       </div>

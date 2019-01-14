@@ -27,7 +27,12 @@
   padding: 10px;
   margin: 10px;
   border-radius: 5px;
-  background: rgba(255,255,255, .7);
+  background: rgba(255, 255, 255, .8);
+}
+
+.message-container-my {
+  align-self: flex-end;
+  background: rgba(0, 255, 255, .8);
 }
 
 .message-text {
@@ -38,7 +43,7 @@
 
 }
 
-/* 
+/*
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

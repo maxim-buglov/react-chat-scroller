@@ -11,10 +11,10 @@ const getMessage = (isUp) => ({
     text: fastLoremIpsum(random(3, 30), 'w'),
 });
 
-export default (countMessage) => {
+export default (countMessage, isUp) => {
   let messages = [];
   for (let i = 0; i < countMessage; i++) {
-    messages.push(getMessage());
+    messages.push(getMessage(isUp));
   }
   return messages;
 };
