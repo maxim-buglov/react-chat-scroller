@@ -1,0 +1,16 @@
+export default (options) => new Promise((resolve) => {
+  const {func, duration = 0, easing = data => data} = options;
+  const startDate = Date.now();
+  const tick = () => {
+    const progress = Math.min(1, (Date.now() - startDate) / duration);
+
+    func(easing(progress));
+
+    if (progress < 1) {
+      window.requestAnimationFrame(tick);
+    } else {
+      resolve();
+    }
+  };
+  tick();
+});

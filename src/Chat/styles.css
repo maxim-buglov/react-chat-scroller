@@ -1,0 +1,18 @@
+.chat-view {
+  border: 3px solid #61dafb;
+  border-radius: 6px;
+  width: 320px;
+  height: 500px;
+  overflow: scroll;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100%;
+}
+
+.chat-child {
+  display: contents;
+}
