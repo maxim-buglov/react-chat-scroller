@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+import classNames from 'classnames';
 import last from 'lodash/last';
 import head from 'lodash/head';
 import uniqBy from 'lodash/uniqBy';
@@ -9,12 +10,24 @@ import Chat from './Chat';
 import Message from './Message';
 import './styles.css';
 
+// TODO: Skip button, unread messages
+// TODO: Dynamic new message
+
+// TODO: Go to message animation
+// TODO: Fix double event scroll load
+// TODO: Offset load
+// TODO: Few messages, bug load
+// TODO: Scrolls controls
+
+const START_COUNT_MESSAGES = 300;
+
 class App extends Component {
   state = {
-    conversation: new Conversation({ startCount: 300 }),
+    conversation: new Conversation({ startCount: START_COUNT_MESSAGES }),
     countPartMessages: 33,
     messages: [],
     loadedBottomMessages: false,
+    optionScrollToKey: '',
   };
 
   componentDidMount() {
@@ -75,21 +88,59 @@ class App extends Component {
       .then(this.addMessage);
   };
 
+  onClickScrollControl = (id) => {
+    const { conversation, countPartMessages, messages } = this.state;
+    const idNumber = parseInt(id);
+
+    if (messages.find(m => m.id === idNumber)) {
+      return this.setState({ optionScrollToKey: id });
+    }
+
+    return conversation.getMessages({
+      count: countPartMessages,
+      offset: -5,
+      id: idNumber,
+    })
+      .then(messages => this.setState({ messages, optionScrollToKey: id }));
+  };
+
+  renderScrollControlItem = (message) => {
+    return (
+      <button
+        key={message.id}
+        className={classNames("scroll-controls-item", {
+          'loaded': this.state.messages.find(m => m.id === message.id),
+        })}
+        onClick={() => this.onClickScrollControl(message.id.toString())}
+        type="button"
+      >
+        {`#${message.id}`}
+      </button>
+    );
+  };
+
+  renderMessage = (message) => {
+    return (
+      <Message
+        key={message.id}
+        {...message}
+      />
+    );
+  };
+
   render() {
     return (
       <div className="app-container">
+        <div className="scroll-controls-container">
+          {this.state.conversation.messages.map(this.renderScrollControlItem)}
+        </div>
         <div className="chat-container">
           <Chat
             onScrollTop={this.onScrollTop}
             onScrollBottom={this.onScrollBottom}
-            // scrollTo={}
+            scrollToKey={this.state.optionScrollToKey}
           >
-            {this.state.messages.map(message => (
-              <Message
-                key={message.id}
-                {...message}
-              />
-            ))}
+            {this.state.messages.map(this.renderMessage)}
           </Chat>
         </div>
       </div>

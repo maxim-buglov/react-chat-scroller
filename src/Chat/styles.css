@@ -1,9 +1,10 @@
 .chat-view {
+  position: relative;
+  overflow: scroll;
   border: 3px solid #61dafb;
   border-radius: 6px;
   width: 320px;
   height: 500px;
-  overflow: scroll;
 }
 
 .chat-list {

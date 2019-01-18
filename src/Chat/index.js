@@ -4,18 +4,36 @@ import differenceBy from 'lodash/differenceBy';
 import animation from '../utils/animation';
 import './styles.css';
 
+const MIN_SCROLL_DISTANCE_FOR_CALL_EVENT_LOAD = 100;
+
 class Chat extends Component {
+  static propTypes = {
+    onScrollTop: PropTypes.func.isRequired,
+    onScrollBottom: PropTypes.func.isRequired,
+    scrollToKey: PropTypes.string.isRequired,
+    children: PropTypes.node,
+  };
+
+  static defaultProps = {
+    children: null,
+  };
+
   constructor(props) {
     super(props);
-
+    this.nodeContainer = null;
+    this.nodeList = null;
     this.nodesChildren = {};
+    this.saveClientHeight = 0;
+    this.saveScrollTop = 0;
+    this.pendingScrollTop = false;
+    this.pendingScrollBottom = false;
+    this.pendingScrollToKey = false;
+    this.pendingUpdateChildren = false;
+    this.pendingRefreshChildren = false;
   }
 
   componentDidMount() {
     this.nodeContainer.addEventListener('scroll', this.handlerScroll);
-
-    window.scrollTo = this.scrollTo;
-    window.nodesChildren = this.nodesChildren;
   }
 
   componentWillUnmount() {
@@ -24,43 +42,67 @@ class Chat extends Component {
 
   componentWillReceiveProps(nextProps, nextContext) {
     const differentChildren = differenceBy(nextProps.children, this.props.children, 'key');
+    const differentScrollToKey = nextProps.scrollToKey && (nextProps.scrollToKey !== this.props.scrollToKey);
 
     if (differentChildren.length) {
+      this.pendingUpdateChildren = true;
       if (this.pendingScrollTop) {
         this.saveClientHeight = this.nodeList && this.nodeList.clientHeight;
       }
-    } else {
-      this.pendingScrollTop = false;
+      if (differentChildren.length === nextProps.children.length) {
+        this.pendingRefreshChildren = true;
+      }
     }
 
-    if (nextProps.scrollTo && (nextProps.scrollTo !== this.props.scrollTo)) {
-      this.scrollTo();
+    if (differentScrollToKey) {
+      this.pendingScrollToKey = true;
     }
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.pendingScrollTop) {
-      this.nodeContainer.scrollTop = this.nodeList.clientHeight - this.saveClientHeight;
+    if (this.pendingUpdateChildren) {
+      if (this.pendingScrollTop) {
+        this.nodeContainer.scrollTop = this.nodeList.clientHeight - this.saveClientHeight;
+      }
       this.pendingScrollTop = false;
+      this.pendingScrollBottom = false;
+      this.pendingUpdateChildren = false;
     }
+
+    if (this.pendingScrollToKey) {
+      const node = this.nodesChildren[this.props.scrollToKey];
+      this.pendingScrollToKey = false;
+      if (node) {
+        const position = parseInt(window.getComputedStyle(node).marginTop, 10);
+        this.scrollTo(node.offsetTop - position, this.pendingRefreshChildren ? 0 : 300);
+      }
+    }
+
+    this.pendingRefreshChildren = false;
   }
 
-  scrollTo = (position) => {
+  scrollTo = (position, duration) => {
     animation((progress) => {
       this.nodeContainer.scrollTop =
         (this.nodeContainer.scrollTop * (1 - progress)) + (position * progress);
-    }, 300);
+    }, duration);
   };
 
   handlerScroll = () => {
     const { scrollTop, clientHeight } = this.nodeContainer;
+    const bottomLine = this.nodeList.clientHeight - MIN_SCROLL_DISTANCE_FOR_CALL_EVENT_LOAD;
+    const topLimit = scrollTop <= MIN_SCROLL_DISTANCE_FOR_CALL_EVENT_LOAD;
+    const bottomLimit = (scrollTop + clientHeight) >= bottomLine;
+    const directionTop = this.saveScrollTop > scrollTop;
+    this.saveScrollTop = scrollTop;
 
-    if (scrollTop === 0) {
+    if (!this.pendingScrollTop && topLimit && directionTop) {
       this.pendingScrollTop = true;
       this.props.onScrollTop();
     }
 
-    if ((scrollTop + clientHeight) === this.nodeList.clientHeight) {
+    if (!this.pendingScrollBottom && bottomLimit && !directionTop) {
+      this.pendingScrollBottom = true;
       this.props.onScrollBottom();
     }
   };
@@ -78,7 +120,6 @@ class Chat extends Component {
   };
 
   setRefChild = (e, key) => {
-    console.log('Log e, key:', e, key);
     if (e) {
       this.nodesChildren[key] = e;
     }
@@ -89,7 +130,6 @@ class Chat extends Component {
   };
 
   render() {
-    console.log('Log this:', this);
     return (
       <div
         className="chat-view"
@@ -105,16 +145,6 @@ class Chat extends Component {
     );
   }
 }
-
-Chat.propTypes = {
-  onScrollTop: PropTypes.func.isRequired,
-  onScrollBottom: PropTypes.func.isRequired,
-  children: PropTypes.node,
-};
-
-Chat.defaultProps = {
-  children: null,
-};
 
 export default Chat;
   

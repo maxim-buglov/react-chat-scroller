@@ -38,6 +38,7 @@ class Conversation {
 
   getMessages(options) {
     const {
+      id = false,
       offset = 0,
       count = 0,
       sinceDateInclusive = false,
@@ -45,6 +46,10 @@ class Conversation {
       tillDateInclusive = false,
       tillDateExclusive = false,
     } = options;
+
+    if (id) {
+      return getAsync(this.messages.slice(id + offset, id + offset + count));
+    }
 
     const sinceDate = sinceDateInclusive || sinceDateExclusive;
     const tillDate = tillDateInclusive || tillDateExclusive;
@@ -61,15 +66,15 @@ class Conversation {
     }
 
     if (sinceDate) {
-      const sinceDateOffset = offset + currentMessage.id + (sinceDateInclusive ?  0 : 1);
+      const sinceDateOffset = offset + currentMessage.id + (sinceDateInclusive ? 0 : 1);
       return getAsync(this.messages.slice(sinceDateOffset, sinceDateOffset + count));
     }
 
     if (tillDate) {
-      const tillDateOffset = offset + currentMessage.id - (tillDateInclusive ?  1 : 0);
+      const tillDateOffset = offset + currentMessage.id - (tillDateInclusive ? 1 : 0);
       const startIndex = tillDateOffset - count;
-      const startIndexCorrect = Math.max(0,startIndex);
-      const endIndexCorrect = Math.max(0,tillDateOffset);
+      const startIndexCorrect = Math.max(0, startIndex);
+      const endIndexCorrect = Math.max(0, tillDateOffset);
       return getAsync(this.messages.slice(startIndexCorrect, endIndexCorrect));
     }
 
